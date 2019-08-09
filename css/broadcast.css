@@ -1,0 +1,18 @@
+.booth{
+    width: 800px;
+    background-color: #ccc;
+    border: 10px solid #ddd;
+    margin : 5% 10%;
+    float: left;
+}
+.chatroom{
+    border: 2px solid #ccc;
+    position: fixed;
+    top : 10%;
+    right: 5%;
+    width: 300px;
+    height: 600px;
+    margin: 10px;
+}
+#msg{width:80%; height: 30px;}
+button{height: 30px;}
