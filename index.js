@@ -69,4 +69,6 @@ io.sockets.on('connection', (socket) => {
         socket.broadcast.emit('message', msg , socket.id)
     })
 
+}
+
 server.listen(8443, () => { console.log('::: Port listening 8443 :::'); })
