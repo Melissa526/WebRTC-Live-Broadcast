@@ -17,7 +17,7 @@ var options = {
 }
 
 app.get('/', (req, res) => {
-    fs.readFile('./index.html', (err, data) =>{
+    fs.readFile('./broadcast.html', (err, data) =>{
         if(err){
             res.send(err)
         }else{
@@ -27,17 +27,7 @@ app.get('/', (req, res) => {
         }
     })
 })
-// app.get('/startLive', (req, res) => {
-//     fs.readFile('./broadcast.html', (err, data) => {
-//         if(err){
-//             res.send(err)
-//         }else{
-//             res.writeHead(200, { 'Content-Type' : 'text/html'})
-//             res.write(data)
-//             res.end()
-//         }
-//     })
-// })
+
 /* -------------------------------------------------------------- */
 const server = https.createServer(options, app)
 const io = socketIO(server)
@@ -47,6 +37,18 @@ var roomList = []
 
 io.sockets.on('connection', (socket) => {
 
+    socket.on('join', (room, name) => {
+       roomList = io.sockets.adapter.rooms
+       console.log(roomList)
+
+       for(var key in roomList){
+           if(key == "") continue
+           
+           if(key == room){
+               socket.join(room)
+           }
+       }
+    })
     socket.on('create', (roomNum, userName) => {
         socket.name = userName
         roomList.push(roomNum) 
@@ -60,15 +62,9 @@ io.sockets.on('connection', (socket) => {
         })
     })
 
-    socket.join(room)
-    socket.on('join', (roomNum) => {
-
-    })
-
     socket.on('message', (msg) => {
         socket.broadcast.emit('message', msg , socket.id)
     })
-
 })
 
 server.listen(8443, () => { console.log('::: Port listening 8443 :::'); } )
