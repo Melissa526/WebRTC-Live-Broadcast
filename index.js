@@ -1,5 +1,6 @@
+/* Server Side */
 const express = require('express'),
-      https = =require('https'),
+      https = require('https'),
       socketIO = require('socket.io'),
       fs = require('fs')
 var os = require('os')
@@ -9,7 +10,7 @@ var app = express()
 app.use('/css', express.static('./css'))
 app.use('/js', express.static('./js'))
 
-//Setting Https server's options
+//Setting Https server's Options
 var options = {
     key : fs.readFileSync('./key/server.key'),
     cert : fs.readFileSync('./key/server.cert')
@@ -26,26 +27,46 @@ app.get('/', (req, res) => {
         }
     })
 })
-
+// app.get('/startLive', (req, res) => {
+//     fs.readFile('./broadcast.html', (err, data) => {
+//         if(err){
+//             res.send(err)
+//         }else{
+//             res.writeHead(200, { 'Content-Type' : 'text/html'})
+//             res.write(data)
+//             res.end()
+//         }
+//     })
+// })
+/* -------------------------------------------------------------- */
 const server = https.createServer(options, app)
 const io = socketIO(server)
 
 var live
+var roomList = []
 
 io.sockets.on('connection', (socket) => {
 
-    socket.on('create', (room) => {
-        var ranNum = parseInt(Math.random()*999999999)
-        console.log(`CREATE ROOM AT [${ranNum}]`)
+    socket.on('create', (roomNum, userName) => {
+        socket.name = userName
+        roomList.push(roomNum) 
 
-        socket.join(room)
+        console.log(`${socket.name} created room ${roomNum}`)
+        socket.join(roomNum)
+        io.sockets.emit('roomList', roomList)
+        io.sockets.to(roomNum).emit('joinedRoom', {
+            room : roomNum,
+            name : socket.name
+        })
+    })
+
+    socket.join(room)
+    socket.on('join', (roomNum) => {
+
     })
 
     socket.on('message', (msg) => {
         socket.broadcast.emit('message', msg , socket.id)
     })
 
-})
-
-server.listen(8443, () => { console.log('Port listening 8443'); })
-
+server.listen(8443, () => { console.log('::: Port listening 8443 :::'); })
