@@ -1,0 +1,25 @@
+{
+  "name": "wertc-live-broadcast",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "os": "^0.1.1",
+    "socket.io": "^2.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Melissa526/WeRTC-Live-Broadcast.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Melissa526/WeRTC-Live-Broadcast/issues"
+  },
+  "homepage": "https://github.com/Melissa526/WeRTC-Live-Broadcast#readme"
+}

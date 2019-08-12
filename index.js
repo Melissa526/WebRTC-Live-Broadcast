@@ -39,16 +39,11 @@ io.sockets.on('connection', (socket) => {
         console.log(`CREATE ROOM AT [${ranNum}]`)
 
         socket.join(room)
-        
-
     })
 
     socket.on('message', (msg) => {
         socket.broadcast.emit('message', msg , socket.id)
     })
-
-
-
 
 })
 
