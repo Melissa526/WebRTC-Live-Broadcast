@@ -67,4 +67,4 @@ io.sockets.on('connection', (socket) => {
     })
 })
 
-server.listen(8443, () => { console.log('::: Port listening 8443 :::'); } )
+server.listen(3001, () => { console.log('::: Port listening 3001 :::'); } )
