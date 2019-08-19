@@ -9,13 +9,36 @@
 </head>
 <body>
     <label>Name :</label><input type="text" name="userName" id="userName">
-    <button class="startButton">접 속</button>
+    <button id="startLiveBtn">방송시작</button>
     <div class="list"></div>
     <div class="channel">
     </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="./js/main.js"></script>
+    <script>
+        var socket = io.connect()
+
+        var startLiveBtn = document.getElementById('startLiveBtn')
+
+        startLiveBtn.addEventListener('click', ()=>{
+            location.href = `/caster`
+        })
+
+        socket.on('createdRoom', (data) => {
+            console.log(rooms)
+            
+        })
+
+        function addOnAirChannel(caster, room, title){
+            $('.list').append(`<div class="onair-channel-btn">  
+                                  <h2><a>${title}</a></h2>
+                                  <h3>${caster}</h3>
+                                  <input type="hidden" name="room" value="${room}"> 
+                               </div>`)
+        }
+
+    
+    </script>
 </body>
 </html>

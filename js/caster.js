@@ -1,5 +1,5 @@
 
-/* Client */
+/*  CASTER  */
 var socket = io.connect()
 
 var localStream
@@ -25,9 +25,6 @@ var sdpConstraints = {
     // 1 = true    
 };
 
-
-
-
 var video = document.getElementById('video')
 const constraints = {
     audio: true,
@@ -38,33 +35,28 @@ const constraints = {
 
 
 /* ---------------------- SOCKET --------------------- */
-var room = 'test'
-var name = 'zsoo'
+var name = prompt('닉네임을 입력해주세요!')
+var title = prompt('')
+var room = parseInt(Math.random()*999999999999)
+var roomArr 
 
-//접속
-// socket.emit('join', room, name)
-// console.log(`+ ${name}이 '${room}'에 입장!`)
+//caster 접속 -> 방생성
+if(name!=null && name != ""){
+    socket.emit('create', room, name, title)
+    console.log(`Caster "${name}" is in room [${room}]!`)
+    document.getElementById('onair-title').innerHTML = title
+}else{
+    console.log(`Caster is not defined`)
+    alert('Caster is not defined')
+}
 
-// //방생성
-// socket.on('create', (room, user) => {
-//    caster = name
-//    createPeerConnection(caster, user)
-// })
+//Chat
+socket.on('message', (name, msg) => {
+    appendMessage(name, msg)
+})
 
-// socket.on('message', (name, msg) => {
-//     appendMessage(name, msg)
-// })
+socket.on('')
 
-// function appendMessage(userName, msg){
-//     var _name = userName
-//     var text;
-//     if (_name) {
-//         text = `<p class="nameSpace">[${userName}]</p>&nbsp;<p>${msg}</p>`
-//     } else {
-//         text = `<p>${msg}</p>`
-//     }
-//     $('.m').append($(`<li>`).html(text))
-// }
 
 function gotStream(stream){
     console.log('Received local stream');
@@ -89,14 +81,18 @@ function start(){
 /* ---------------------- RECODING VIDEO --------------------- */
 var startBtn = document.getElementById('startButton'),
     stopBtn = document.getElementById('stopButton')
-    //recBtn = document.getElementById('recButton')
-    
+
 const mediaSource = new MediaSource()
 let mediaRecorder;
 let recordedBlobs = [];
 let sourceBuffer;
-
+    
+var videoSeq = 0;
+    
+startBtn.addEventListener('click', ()=>{ init(constraints); startBtn.disabled = true; })
+stopBtn.addEventListener('click', ()=>{ stopRecording(); console.log('Stop Recording....')})
 mediaSource.addEventListener('sourceopen', handleSourceopen, false)
+
 
 function handleSourceopen(e){
     console.log('MediaSource Opened')
@@ -105,7 +101,6 @@ function handleSourceopen(e){
 }
 
 function handleSuccess(stream){
-    //recBtn.disabled = false
     console.log('getUserMedia() got stream : ', stream)
     window.stream = stream
     video.srcObject = stream
@@ -144,10 +139,10 @@ function startRecording(){
     }   
     
     //녹화시작: rec버튼 무효/stop버튼 유효화 
-    //recBtn.disabled = true
     stopBtn.disabled = false
 
     mediaRecorder.onstop = function(e){
+        downloadRecording()
         console.log('Recoreded stop : ', e);
     }
 
@@ -169,13 +164,15 @@ function stopRecording(){
 }
 
 function downloadRecording(){
+    ++videoSeq;
     //Blob 객체는 파일과 흡사한 불변 객체로 raw data
+
     const blob = new Blob(recordedBlobs, {type: 'video/webm'});
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
-    a.href = url;
-    a.download = 'test.webm';
+    a.href = url
+    a.download = `dd-live-${name}-${videoSeq}.webm`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -195,30 +192,39 @@ async function init(constraints){
     }
 }
 
+/* ------------------------------------------- */
+
+function appendMessage(userName, msg){
+    var _name = userName
+    var text;
+    if (_name) {
+        text = `<p class="nameSpace">[${userName}]</p>&nbsp;<p>${msg}</p>`
+    } else {
+        text = `<p>${msg}</p>`
+    }
+    $('#messages').append($(`<li>`).html(text))
+}
 
 $(function(){
     startBtn.disabled = false
-    //recBtn.disabled = true
     stopBtn.disabled = true
 
-    startBtn.addEventListener('click', ()=>{ init(constraints); startBtn.disabled = true; })
-    //recBtn.addEventListener('click', ()=>{ startRecording(); console.log('Start Recording..!')})
-    stopBtn.addEventListener('click', ()=>{ stopRecording(); console.log('Stop Recording....')})
-    
     //Download Button
     $(document).on('click', '#downButton', () => {
         downloadRecording()
      })
     
-    /* $('form').submit(function (e) {
+
+    //On Chat
+    $('form').submit(function (e) {
         e.preventDefault();
         var msg = $('#msg').val().trim();
         if (msg != "" && msg != null) {
             socket.emit('message', room, name, msg)
-            //appendMsg('me', msg)
-            appendMessage('me', msg)
+            console.log(`[Caster-${name}] ${msg}`);
+            //appendMessage('caster', msg)
         }
         $('#msg').val('');
         return false;
-    }); */
+    });
 })

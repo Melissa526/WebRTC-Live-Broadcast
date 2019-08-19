@@ -1,38 +1,140 @@
-.booth{
-    width: 800px;
-    background-color: #ccc;
-    border: 10px solid #ddd;
-    margin : 5% 10%;
-    float: left;
+.container{
+    width: 90%;
+    height: 1200px;
+    margin: 0 auto;
+    border: 1px solid darkgreen;
+}
+.channel-description{
+    width: 100%; height: 60px;
+}
+#channel-icon{ 
+    width: 52px; height: 52px;
+    border-radius: 5em;
+    background-image: url('http://www.kyeongin.com/mnt/file/201907/20190716001537091_1.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+#channel-name-area{
+    position: absolute;
+    top: 3.5%;
+    left: 10%;
+}
+#channel-name-area a{ text-decoration: none; }
+#channel-name-area a:hover{ color: #7C5CB2;/*#785FB3;*/ }
+#channel-name{
+    color: #414141;
+    font-size: 19px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#channel-follow{
+    position: absolute;
+    z-index: 2;
+    width:80px;
+    height: 35px;
+    line-height: 33px;
+    border: 1px solid #d8d8d8;
+    background: transparent;
+    border-radius: 31px;
+    padding: 0 17px 0 14px;
+    font-size: 14px;
+    color: #414141;
+    top: 2.6%;
+    left: 22%;
+    cursor: pointer;
+}
+.live-booth{
+    text-align: center;
+}
+.channel-controlbox{ 
+    width: 100%;
+    height: 70px;
+    float: right;
+    text-align: right;
+}
+.channel-video-area{
+    display: inline-flex;
+    width:73%;
+    height: 550px;
+    background: #414141;
 }
 .chatroom{
-    border: 2px solid #ccc;
-    background-color: aliceblue;
-    position: fixed;
-    top : 10%;
-    right: 5%;
-    width: 300px;
-    height: 600px;
-    margin: 10px;
+    display: inline-flex;
+    width: 25%; height: 565px;
+    text-align: left;
+    border: 1px solid #ccc;
 }
-#msg{width:80%; height: 30px;}
-button{height: 30px;}
-
-ul{ margin: 0;
-    padding: 5px 5px 10px 10px;
+.chatroom form { 
+   background:salmon; 
+   padding: 3px; 
+   bottom: 0; width: 100%; 
+   display: block;
 }
-ul li{
-    list-style: none;
+.chatroom form input{
+    border: 0; 
+    padding: 10px; 
+    width: 85%; height:25px;
+    margin-right: .5%;
+    display: block;
+}
+.channel-onair-info{
+    border: 1px solid #ccc;
+    width: 100%; height: 80px;
     margin: 0;
+    line-height: 1.5em;
+    text-align: left;
+}
+.chatroom form button{
+    width: 13.5%; 
+    background: rgb(255, 229, 52); 
+    border: none; 
+    border-radius: 0.2em; 
+    padding: 10px; 
+    font-weight: bold;
+    display: block;
+}
+#messages {
+    list-style-type: none;
+    padding: 0;
+}
+#messages li {
+    padding: 5px 10px;
+    background: rgb(255, 229, 52);
+    border-radius: 0.4em;
+    font-size: 15px;
+    display: block;
+    max-width: 350px;
+    margin: 5px;
     clear: both;
     word-break: break-all;
 }
-li p { 
+#messages li p{ 
     display: inline-block; 
     margin: 0;
+    font-size: 16px;
 }
-li p.nameSpace{
-    font-weight: bold;
-    color: olivedrab;
-   
+#messages p.nameSpace{
+    display: inline-block;
+    color: #999999;
+    font-size: 12px;
 }
+#messages p.nameSpace:hover{
+    cursor: grab;
+}
+#messages p.nameSpace:active{
+    cursor: grabbing;
+}
+#messages li.other{
+    float: left;
+}
+#messages li.me{
+    background: white;
+    float: right;
+}
+#messages li.server{
+    text-align: center;
+    max-width: 100%;
+    background: green;
+}
+.fa-star{ color: #414141;}
