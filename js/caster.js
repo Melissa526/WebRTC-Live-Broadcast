@@ -36,7 +36,7 @@ const constraints = {
 
 /* ---------------------- SOCKET --------------------- */
 var name = prompt('닉네임을 입력해주세요!')
-var title = prompt('')
+var title = prompt('방제목을 입력해주세요')
 var room = parseInt(Math.random()*999999999999)
 var roomArr 
 
@@ -205,6 +205,18 @@ function appendMessage(userName, msg){
     $('#messages').append($(`<li>`).html(text))
 }
 
+function onChatSubmit(){
+    if(event.keyCode == 13){
+        event.preventDefault()
+        var msg = $('#msg').val().trim();
+        if (msg != "" && msg != null) {
+            socket.emit('message', room, name, msg)
+            console.log(`[Caster-${name}] ${msg}`);
+            //appendMessage('caster', msg)
+        }
+        $('#msg').val('');
+    }
+}
 $(function(){
     startBtn.disabled = false
     stopBtn.disabled = true
@@ -214,17 +226,10 @@ $(function(){
         downloadRecording()
      })
     
-
-    //On Chat
-    $('form').submit(function (e) {
-        e.preventDefault();
-        var msg = $('#msg').val().trim();
-        if (msg != "" && msg != null) {
-            socket.emit('message', room, name, msg)
-            console.log(`[Caster-${name}] ${msg}`);
-            //appendMessage('caster', msg)
-        }
-        $('#msg').val('');
-        return false;
-    });
+    // //On Chat
+    // $('form').submit(function (e) {
+    //     e.preventDefault();
+        
+    //     return false;
+    // });
 })

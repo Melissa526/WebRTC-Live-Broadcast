@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,26 +36,29 @@
         <div class="live-booth">
             <!-- Video  -->
             <div class="channel-video-area">
-                <video id="video" width="925" height="550" autoplay></video>
+                <video id="video" autoplay></video>
             </div> 
-            <!-- Chatroom -->
-            <div class="chatroom">
-                <ul id="messages"></ul>
-                <form action="">
-                        <input type="text" id="msg" autocomplete="off">
-                        <button class="btn-send">SEND</button>
-                </form>
-
-            </div>
             <!-- Live Stream Title -->
             <div class="channel-onair-info">
-                <div>
+                <div id="info-title">
                     <h2 id="onair-title">Live Stream Title on this</h2>
                 </div>
-                <div>
-
+                <!-- Number of visitors -->
+                <div id="info-numOf-visitor">
+                    <span><h3>00</h3></span>
+                    <span>명 접속중</span>
                 </div>
             </div>
+        </div>
+        <!-- Chatroom -->
+        <div class="chatroom">
+                <div>
+                    <ul id="messages"></ul>
+                    <form action="">
+                            <input type="text" id="msg" autocomplete="off" onKeyDown="onChatSubmit()">
+                            <!-- <button class="btn-send">SEND</button> -->
+                    </form>
+                </div>
         </div>
     </div>
 
