@@ -4,41 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <link rel="stylesheet" href="./css/index.css">
+    <title>D.Live - Channel List </title>
+    <link rel="stylesheet" href="./css/main.css">
 </head>
 <body>
     <label>Name :</label><input type="text" name="userName" id="userName">
     <button id="startLiveBtn">방송시작</button>
     <div class="list"></div>
-    <div class="channel">
+    <div id="channel-list">
+       <ul>
+        <li class="channel-box">
+            <a href="/caster?r=85278040">
+                <img src="https://v-phinf.pstatic.net/20190820_236/1566274953011PlKY2_JPEG/58a3151f-c2e6-11e9-927e-505dac8c385b_08.jpg?type=f228_128" width="230" height="128">
+            </a>
+            <p><a href="/caster?r=85278040">여자친구 은하(GFRIEND EunHa), 세젤청 짜냥이 매력</a></p>
+            <div class="channel-info">
+                <div>
+                    <span>1일전</span>
+                    <span>&nbsp;|&nbsp;</span>
+                    <span>여자친구</span>
+                </div>
+                <div>
+                    <span>
+                        <span>@ o @</span>
+                        <span>15</span>
+                    </span>
+                    <span>
+                        <span>♥</span>
+                        <span>5</span>
+                     </span>
+                </div>
+            </div>
+            <input type="hidden" name="room-number" value="${item.room}">
+            <input type="hidden" name="room-thumb" value="${item.thumb}">
+        </li>
+       </ul>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        var socket = io.connect()
-
-        var startLiveBtn = document.getElementById('startLiveBtn')
-
-        startLiveBtn.addEventListener('click', ()=>{
-            location.href = `/caster`
-        })
-
-        socket.on('createdRoom', (data) => {
-            console.log(rooms)
-            
-        })
-
-        function addOnAirChannel(caster, room, title){
-            $('.list').append(`<div class="onair-channel-btn">  
-                                  <h2><a>${title}</a></h2>
-                                  <h3>${caster}</h3>
-                                  <input type="hidden" name="room" value="${room}"> 
-                               </div>`)
-        }
-
-    
-    </script>
+    <script src="./js/main.js"></script>
 </body>
 </html>

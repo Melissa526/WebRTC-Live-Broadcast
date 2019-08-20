@@ -1,0 +1,39 @@
+.channel-list{ 
+    border: 1px solid #ccc; 
+    height: 700px; 
+}
+.channel-box{
+    width: 230px; height: 220px; 
+    border: 1px dotted #aaa;
+    text-align: left;
+    display: inline-block;
+    margin: 15px;
+}
+.channelBox h3 a{ color: #000; text-decoration: none; cursor: pointer;}
+.channelBox h3 a:hover{text-decoration: underline;}
+.channelBox h5 { color: #aaa; text-decoration: underline;}
+
+.channel-info{
+    white-space: nowrap;
+    padding: 0 0 0 2px;
+    font-size: 12px;
+    color: #999;
+    line-height: 20px;
+}
+.channel-box p a {
+    padding: 4px 0 0 2px;
+    font-size: 14px;
+    line-height: 15px;
+    color: #000;
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+ }
+ li.channel-box p {
+    margin-block-start: 0px;
+    margin-block-end: 5px;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+ }
+ .channel-box p a:hover{ color: #7C5CB2; text-decoration: underline;}

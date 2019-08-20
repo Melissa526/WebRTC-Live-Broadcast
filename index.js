@@ -40,7 +40,7 @@ app.get('/caster', (req, res) => {
             res.end()
         }
         console.log
-    })
+    }) 
 })
 
 app.get('/user', (req, res) => {
@@ -69,12 +69,23 @@ io.sockets.on('connection', (socket) => {
     socket.on('create', (roomNum, casterName, title) => {
         socket.name = casterName
         caster = socket.id
+        console.log(`Caster(socket.id) : ${caster}`)
         console.log(`[Caster Join] "${socket.name}" created room ${roomNum}`)
 
-        socket.join(roomNum)
-        io.sockets.to(roomNum).emit('createdRoom', {
-            rooms : io.sockets.adapter.rooms
-        })
+        var rooms = io.sockets.adapter.rooms
+        for(var key in rooms){
+            if(key == 1){
+                socket.to(key).emit('conflicted', key)
+                socket.leave(key)
+            }else{
+                socket.join(roomNum)
+                io.sockets.to(roomNum).emit('createdRoom', {
+                    msg : `${casterName}님의 방이 개설되었습니다`,
+                    name: casterName
+                })
+                socket.emit('roomlist',roomList)
+            }
+        }
     })
 
     socket.on('user-join', (room, name) => {
@@ -104,3 +115,4 @@ io.sockets.on('connection', (socket) => {
 })
 
 server.listen(3001, () => { console.log('::: Port listening 3001 :::'); } )
+

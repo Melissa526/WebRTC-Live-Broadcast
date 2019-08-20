@@ -50,24 +50,29 @@ if(name!=null && name != ""){
     alert('Caster is not defined')
 }
 
+socket.on('createdRoom', (msg, name) =>{
+    console.log(name)
+    appendMessage(name, msg)
+})
+
+socket.on('conflicted', (room) => {
+    socket.leave(room)
+})
 //Chat
 socket.on('message', (name, msg) => {
     appendMessage(name, msg)
 })
 
-socket.on('')
-
+/* ---------------------- STREAM VIDEO --------------------- */
 
 function gotStream(stream){
     console.log('Received local stream');
     video.scrObject = stream
     window.localStream = stream;
-    //recBtn.disabled = false;
 }
 
 function start(){
     console.log('Requesting local stream!')
-    //recBtn.disabled = true
 
     navigator.mediaDevices.getUserMedia({
         video : true,
@@ -112,7 +117,7 @@ function handleDataAvailable(event) {
     }
   }
 
-function startRecording(){
+function startLiveStream(){
     //Setting Recording Options
     let options = {mimeType: 'video/webm;codecs=vp9'};
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
@@ -155,7 +160,6 @@ function startRecording(){
 function stopRecording(){
     //녹화중지: rec버튼 유효/stop버튼 무효화 
     stopBtn.disabled = true
-    //recBtn.disabled = false
     mediaRecorder.stop()
     console.log('Recorded Blobs: ', recordedBlobs);
 
@@ -184,11 +188,12 @@ function downloadRecording(){
 //When the Start Button is Pressed, initialize stream(getUserMedia)
 async function init(constraints){
     try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        handleSuccess(stream);
-        startRecording()
+        // const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        // handleSuccess(stream);
+        startLiveStream()
     } catch (e) {
         console.error('navigator.getUserMedia error:', e)
+        alert(`Error occured on getUserMedia() : ${e} `)
     }
 }
 
@@ -211,7 +216,7 @@ function onChatSubmit(){
         var msg = $('#msg').val().trim();
         if (msg != "" && msg != null) {
             socket.emit('message', room, name, msg)
-            console.log(`[Caster-${name}] ${msg}`);
+            console.log(`[Caster-${name}] ${msg}`)
             //appendMessage('caster', msg)
         }
         $('#msg').val('');
@@ -224,7 +229,7 @@ $(function(){
     //Download Button
     $(document).on('click', '#downButton', () => {
         downloadRecording()
-     })
+    })
     
     // //On Chat
     // $('form').submit(function (e) {
