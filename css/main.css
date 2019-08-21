@@ -12,7 +12,6 @@
 .channelBox h3 a{ color: #000; text-decoration: none; cursor: pointer;}
 .channelBox h3 a:hover{text-decoration: underline;}
 .channelBox h5 { color: #aaa; text-decoration: underline;}
-
 .channel-info{
     white-space: nowrap;
     padding: 0 0 0 2px;

@@ -1,3 +1,8 @@
+//var url = require('url')
+//var queryString = url.parse(document., true);
+// var para = document.location.href.split("?");
+// var mymy = para[1].split('=')[1];
+// console.log(para[1].split('=')[1]);
 
 /*  CASTER  */
 var socket = io.connect()
@@ -35,25 +40,35 @@ const constraints = {
 
 
 /* ---------------------- SOCKET --------------------- */
-var name = prompt('닉네임을 입력해주세요!')
-var title = prompt('방제목을 입력해주세요')
-var room = parseInt(Math.random()*999999999999)
-var roomArr 
+//var name = prompt('닉네임을 입력해주세요!')
+//var title = prompt('방제목을 입력해주세요')
+var name = 'Zsoo'
+var title = 'Live Stream Test'
+var _room
 
 //caster 접속 -> 방생성
 if(name!=null && name != ""){
-    socket.emit('create', room, name, title)
-    console.log(`Caster "${name}" is in room [${room}]!`)
+    socket.emit('create', name, title)
     document.getElementById('onair-title').innerHTML = title
 }else{
     console.log(`Caster is not defined`)
     alert('Caster is not defined')
 }
 
-socket.on('createdRoom', (msg, name) =>{
-    console.log(name)
-    appendMessage(name, msg)
+socket.on('createdRoom', (roomNumber) =>{
+    _room = roomNumber
+    console.log(`this room number is ${_room}`)
+
+    var roomInfo = {
+        room : _room,
+        caster : name,
+        title : title,
+        thumb : `https://v-phinf.pstatic.net/20190813_56/1565623602340qwcBD_JPEG/upload_2.jpg?type=f228_128`,
+        date : getTimeStamp()
+    }
+    socket.emit('joinedCaster', roomInfo)
 })
+
 
 socket.on('conflicted', (room) => {
     socket.leave(room)
@@ -81,6 +96,10 @@ function start(){
     .catch(e => {
         console.log('getUserMedia() error : ' , e);
     })
+}
+
+function createOffer(socketId){
+
 }
 
 /* ---------------------- RECODING VIDEO --------------------- */
@@ -202,8 +221,10 @@ async function init(constraints){
 function appendMessage(userName, msg){
     var _name = userName
     var text;
-    if (_name) {
-        text = `<p class="nameSpace">[${userName}]</p>&nbsp;<p>${msg}</p>`
+    if (_name === 'caster') {
+        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
+    } else if(_name === 'user'){
+        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
     } else {
         text = `<p>${msg}</p>`
     }
@@ -215,17 +236,47 @@ function onChatSubmit(){
         event.preventDefault()
         var msg = $('#msg').val().trim();
         if (msg != "" && msg != null) {
-            socket.emit('message', room, name, msg)
             console.log(`[Caster-${name}] ${msg}`)
-            //appendMessage('caster', msg)
+            socket.emit('message', _room, 'caster', msg)
         }
         $('#msg').val('');
+        $(".chatroom").scrollTop($("#msgDiv")[0].scrollHeight);
     }
+    var e = jQuery.Event( "keypress", { keyCode: 13 } ); 
+    $("#msg").trigger(e);
 }
+
+function getTimeStamp() {
+    var d = new Date();
+  
+    var stamp =
+      leadingZeros(d.getFullYear(), 4) + '-' +
+      leadingZeros(d.getMonth() + 1, 2) + '-' +
+      leadingZeros(d.getDate(), 2) + ' ' +
+  
+      leadingZeros(d.getHours(), 2) + ':' +
+      leadingZeros(d.getMinutes(), 2) + ":00";
+  
+    
+    console.log('now is', stamp, ' ...');
+    
+    return stamp;
+  }
+
+function leadingZeros(n, digits) {
+   var zero = '';
+   n = n.toString();
+  
+    if (n.length < digits) {
+      for (i = 0; i < digits - n.length; i++)
+        zero += '0';
+    }
+    return zero + n;
+}
+
 $(function(){
     startBtn.disabled = false
     stopBtn.disabled = true
-
     //Download Button
     $(document).on('click', '#downButton', () => {
         downloadRecording()

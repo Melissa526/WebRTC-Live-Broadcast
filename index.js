@@ -6,11 +6,11 @@ const express = require('express'),
 var os = require('os')
 var app = express()
 
-var random
+var roomNumber
 
 //Allow to use STATIC Files
-app.use('/css', express.static('./css'))
-app.use('/js', express.static('./js'))
+app.use('/css/', express.static('./css'))
+app.use('/js/', express.static('./js'))
 
 //Setting Https server's Options
 var options = {
@@ -19,6 +19,7 @@ var options = {
 }
 
 app.get('/', (req, res) => {
+
     fs.readFile('./index.html', (err, data) =>{
         if(err){
             res.send(err)
@@ -30,7 +31,9 @@ app.get('/', (req, res) => {
     })
 })
 
-app.get('/caster', (req, res) => {
+app.get('/caster/:page', (req, res) => {
+    roomNumber = req.params.page;
+
     fs.readFile(`./caster.html`, (err, data) => {
         if(err){
             res.send(err)
@@ -39,7 +42,6 @@ app.get('/caster', (req, res) => {
             res.write(data)
             res.end()
         }
-        console.log
     }) 
 })
 
@@ -52,7 +54,6 @@ app.get('/user', (req, res) => {
             res.write(data)
             res.end()
         }
-        console.log
     })
 })
 
@@ -62,15 +63,16 @@ const io = socketIO(server)
 
 var live
 var caster
+var roomArr = []
 
 io.sockets.on('connection', (socket) => {
 
     //caster 접속 (방 생성)
-    socket.on('create', (roomNum, casterName, title) => {
+    socket.on('create', (casterName, title) => {
         socket.name = casterName
         caster = socket.id
         console.log(`Caster(socket.id) : ${caster}`)
-        console.log(`[Caster Join] "${socket.name}" created room ${roomNum}`)
+        console.log(`[Caster Join] "${socket.name}" created room ${roomNumber}`)
 
         var rooms = io.sockets.adapter.rooms
         for(var key in rooms){
@@ -78,39 +80,46 @@ io.sockets.on('connection', (socket) => {
                 socket.to(key).emit('conflicted', key)
                 socket.leave(key)
             }else{
-                socket.join(roomNum)
-                io.sockets.to(roomNum).emit('createdRoom', {
-                    msg : `${casterName}님의 방이 개설되었습니다`,
-                    name: casterName
-                })
-                socket.emit('roomlist',roomList)
+                socket.join(roomNumber)
+                io.sockets.to(roomNumber).emit('createdRoom', roomNumber)
             }
         }
     })
+//지수언니 안뇽 언니의 자리는 내가 차지햇숴 이제 여긴 내자리야
+//언니는 거기서 살아 진희는 집에 갈거야
+//가서 돌아오지 않을거야!!!!!! 집에 갈거라구우!!!!!
+//면접 준비하기 실타....면접이 뭐죠?
+    socket.on('joinedCaster', (roomInfo) => {
+        if(roomArr.length == 0){
+            roomArr.push(roomInfo)
+        }else{
 
+        }
+        console.log(roomInfo)
+        console.log('roomArray length : ', roomArr.length)
+        for(var key in roomArr){
+                if(key == roomInfo){
+                    console.log('방 있음')
+                    continue;
+                } else{
+                    console.log('방 추가')
+                    roomArr.push(roomInfo)
+                }
+        }
+        
+        socket.emit('roomlist', roomArr)
+    })
+
+    socket.on('requestRoomlist', () =>{
+        socket.emit('roomlist', roomArr)
+    })
     socket.on('user-join', (room, name) => {
        socket.name = name
-       var roomArr = io.sockets.adapter.rooms
-       
-       for(var key in roomArr){
-           console.log(key);
-           
-           if(key == "") continue
-           if(key == room){
-               console.log(`[User Join] "${name}" joined room "${room}"`)
-               socket.join(room)
-               io.sockets.to(room).emit('message', '', `${name}님이 접속하였습니다`)
-               break;
-           }else{
-               console.log('선택하신 방이 없습니다..!')
-               socket.leave(room)
-           }
-       }
     })
    
     //Event on Chat :: 'Message'
-    socket.on('message', (room, name, msg) => {
-        io.sockets.to(room).emit('message', name , msg)
+    socket.on('message', (_room, name, msg) => {
+        io.sockets.to(_room).emit('message', name , msg)
     })
 })
 

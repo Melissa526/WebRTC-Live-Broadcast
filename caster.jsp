@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="">
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -33,12 +34,26 @@
         <!-- Channel Logo's Title -->
 
 
+        <!-- Control Box -->
+        <!-- # If Role of user is 'ADMIN' or 'Artist', SHOW THIS -->
+        <!-- DON'T SHOW for user in 'user' -->
+        <div class="channel-controlbox">
+                <button id="startButton">START</button>
+                <!-- <button id="recButton">REC</button> -->
+                <button id="stopButton">STOP</button>
+        </div>
+
+        <c:
+
+
+
+
         <div class="form-inline">
             <!-- live-booth -->
             <div class="live-booth">
                 <!-- Video  -->
                 <div class="channel-video-area">
-                    <video id="video" autoplay></video>
+                    <video id="video" autoplay controls></video>
                 </div> 
                 <!-- Live Stream Title -->
                 <div class="channel-onair-info">
@@ -67,7 +82,7 @@
                 <div class="chatroom-form">
                     <form action="">
                         <input type="text" id="msg" autocomplete="off" onKeyDown="onChatSubmit()">
-                </form>
+                    </form>
                 </div>
             </div>
         </div>

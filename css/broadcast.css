@@ -1,23 +1,11 @@
-.container{
-    width: 90%;
-    height: 1200px;
-    margin: 0 auto;
-    border: 1px solid darkgreen;
-}
-.channel-description{
-    width: 100%; height: 60px;
-}
+
 #channel-icon{ 
     width: 52px; height: 52px;
     border-radius: 5em;
     background-image: url('http://www.kyeongin.com/mnt/file/201907/20190716001537091_1.jpg');
     background-repeat: no-repeat;
     background-size: cover;
-}
-#channel-name-area{
-    position: absolute;
-    top: 3.5%;
-    left: 10%;
+    display: inline-block;
 }
 #channel-name-area a{ text-decoration: none; }
 #channel-name-area a:hover{ color: #7C5CB2;/*#785FB3;*/ }
@@ -27,39 +15,44 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    position: relative;
+    display: inline-block;
+    top: -50%;
+    bottom: 50%;
+    vertical-align: middle;
 }
 #channel-follow{
-    position: absolute;
-    z-index: 2;
     width:80px;
     height: 35px;
     line-height: 33px;
-    border: 1px solid #d8d8d8;
+    border: 1px solid #a8a8a8;
     background: transparent;
     border-radius: 31px;
     padding: 0 17px 0 14px;
     font-size: 14px;
     color: #414141;
-    top: 2.6%;
-    left: 22%;
     cursor: pointer;
+    float: left;
+    position: relative;
+    top: 50%;
+    bottom: 50%;
 }
+
 .live-booth{
     width: 75%;
-    height: 650px;
-    border: 1px solid sienna;
-    margin: 50px 0;
+    border: 1px solid #ddd;
+    margin: 0px;
+    border-right: none;
+    float: left;
 }
 .live-booth #video{
     width: 100%;
     height: 100%;
     position: relative;
-    top: -20px;
     z-index: 99;
 }
 .channel-controlbox{ 
     width: 100%;
-    height: 70px;
     float: right;
     text-align: right;
 }
@@ -69,33 +62,33 @@
     background: #414141;
     padding: 0;
 }
-.chatroom{
-    width: 25%; 
-    height: 650px;
-    border: 1px solid #ccc;
+.chatbox{ 
+    width: 25%;
+    border: 1px solid #ddd;
     background-color: #FAFAFA;
+}
+.chatroom, .chatroom-form, .chatroom-top{ 
+    width: 100%;
+    margin: 0px;
+    border-top: 1px solid #ddd;
+}
+.chatroom{
+    height: 520px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
-.chatroom form { 
-   padding: 3px; 
-   bottom: 0; width: 100%; 
-   display: block;
-}
-.chatroom form input{
+.chatroom-top{ height: 65px; display: block; }
+.chatroom-form { height: 45px;  display: block;}
+
+.chatroom-form form input{
     border: 0; 
-    padding: 10px; 
-    width: 85%; height:25px;
+    padding: 7px; 
+    width: 100%; height:43px;
+    font-size: 13px;
     margin-right: .5%;
     display: block;
 }
-.channel-onair-info{
-    width: 100%; height: 80px;
-    margin: 0;
-    line-height: 1.5em;
-    text-align: left;
-}
-.chatroom form button{
+.chatroom-form form button{
     width: 13.5%; 
     background: rgb(255, 229, 52); 
     border: none; 
@@ -104,30 +97,35 @@
     font-weight: bold;
     display: block;
 }
+.channel-onair-info{
+    width: 100%; height: 80px;
+    margin: 0;
+    line-height: 1.5em;
+    text-align: left;
+}
 #messages {
     list-style-type: none;
     padding: 0;
 }
 #messages li {
     padding: 5px 10px;
-    background: rgb(255, 229, 52);
-    border-radius: 0.4em;
-    font-size: 15px;
+    background: #fff;
+    font-size: 13px;
     display: block;
-    width:fit-content;
+    border-bottom: 1px solid #ccc;
     max-width: 350px;
     margin: 5px;
     clear: both;
     word-break: break-all;
 }
 #messages li p{ 
-    display: inline-block; 
+    display: block; 
     margin: 0;
-    font-size: 16px;
+    font-size: 14px;
 }
 #messages p.nameSpace{
     display: inline-block;
-    color: #999999;
+    color: #7C5CB2;
     font-size: 12px;
 }
 #messages p.nameSpace:hover{
@@ -140,12 +138,30 @@
     float: left;
 }
 #messages li.me{
-    background: white;
+    background: rgb(255, 229, 52);
     float: right;
 }
 #messages li.server{
     text-align: center;
-    background: green;
+    background: #7C5CB2;
+    border: 1px solid #7C5CB2;
+}
+#onair-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    margin: 13px 0 5px 15px;
+    height: 26px;
+    max-width: 690px;
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 500;
+    color: #000;
 }
 #info-title, #info-numOf-visitor{ display: inline-block; }
 #info-title{
@@ -154,4 +170,8 @@
 #info-numOf-visitor{
     float:right;
     width:20%;
+    line-height: 6em;
+    height: 100%;
 }
+#info-numOf-visitor span h4, #info-numOf-visitor span { display: inline;}
+#info-numOf-visitor span{ font-size: 13px; color: #414141; }
