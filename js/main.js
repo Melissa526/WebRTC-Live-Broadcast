@@ -9,14 +9,22 @@ var roomArr = []
 socket.emit('requestRoomlist')
 
 socket.on('roomlist', (rooms) => {
-    console.log('rooms: ', rooms)
-    addRoomList(rooms)
+    console.log(rooms)
+    if(rooms.length == 0){
+        $('ul').append(`<li>
+                            개설된 방이 없습니다!
+                        </li>`)
+    }else{
+        addRoomList(rooms)
+    }
 })
 
-function addRoomList(data){
-    for(var i=0 ; i<data.length ; i++){
-        var item = data[i]
-        appendRoom(item)
+
+function addRoomList(list){
+    for(var item in list){
+     console.log(item);
+     appendRoom(item)
+
     }
 }
 

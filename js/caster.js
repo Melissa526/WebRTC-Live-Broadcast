@@ -26,34 +26,23 @@ var pcConfig = {
 }
 var sdpConstraints = {      
     offerToReceiveAudio: 1,         
-    offerToReceiveVideo: 1
-    // 1 = true    
+    offerToReceiveVideo: 1              // 1 = true    
 };
 
 var video = document.getElementById('video')
 const constraints = {
     audio: true,
-    video: {
-    width: 1280, height: 720
-    }
+    video: { width: 1280, height: 720 }
 };
 
 
 /* ---------------------- SOCKET --------------------- */
-//var name = prompt('닉네임을 입력해주세요!')
-//var title = prompt('방제목을 입력해주세요')
-var name = 'Zsoo'
 var title = 'Live Stream Test'
 var _room
 
 //caster 접속 -> 방생성
-if(name!=null && name != ""){
-    socket.emit('create', name, title)
-    document.getElementById('onair-title').innerHTML = title
-}else{
-    console.log(`Caster is not defined`)
-    alert('Caster is not defined')
-}
+socket.emit('create', name, title)
+document.getElementById('onair-title').innerHTML = title
 
 socket.on('createdRoom', (roomNumber) =>{
     _room = roomNumber
@@ -236,7 +225,7 @@ function onChatSubmit(){
         event.preventDefault()
         var msg = $('#msg').val().trim();
         if (msg != "" && msg != null) {
-            console.log(`[Caster-${name}] ${msg}`)
+           //console.log(`[Caster-${name}] ${msg}`)
             socket.emit('message', _room, 'caster', msg)
         }
         $('#msg').val('');
