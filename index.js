@@ -31,6 +31,7 @@ app.get('/', (req, res) => {
     })
 })
 
+
 app.get('/caster/:page', (req, res) => {
     roomNumber = req.params.page;
 
@@ -86,7 +87,7 @@ io.sockets.on('connection', (socket) => {
         }
     })
 
-    socket.on('joinedCaster', (roomInfo) => {
+    socket.on('caster-join', (roomInfo) => {
         if(roomArr.length == 0){
             roomArr.push(roomInfo)
             console.log('방 추가')
@@ -95,6 +96,16 @@ io.sockets.on('connection', (socket) => {
         }
         //console.log('roomInfo: ', {roomInfo})      
         socket.emit('roomlist', roomArr)
+    })
+    
+    socket.on('user-join', (_room, name, id) => {
+        for(var key in roomArr){
+            if(key.room == _room){
+                console.log(key.room,'에 ', name,'(',id,')님이 들어왔습니다')
+                io.to(findCaster(_room)).emit('joinedUser', name, socket.id)
+                io.sockets.to(_room).emit('joinedUser', name, id)
+            }
+        }
     })
 
     socket.on('requestRoomlist', () =>{
@@ -108,3 +119,11 @@ io.sockets.on('connection', (socket) => {
 })
 
 server.listen(5571, () => { console.log('::: Port listening 5571 :::'); } )
+
+function findCaster(roomNum){
+    for(var onair in roomArr){
+        if(onair.room == roomNum){
+            return onair.casterid
+        }
+    }
+}

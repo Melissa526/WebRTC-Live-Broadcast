@@ -29,7 +29,7 @@ const constraints = {
 //////////////////////////////////////////////////
 var title = 'Live Stream Test'
 var _room
-
+var clients = []
 
 /* SOCKET */
 var socket = io.connect()
@@ -44,20 +44,30 @@ socket.on('createdRoom', (roomNumber) =>{
     var roomInfo = {
         room : _room,
         caster : name,
+        casterid : socket.id,
         title : title,
         thumb : `https://v-phinf.pstatic.net/20190813_56/1565623602340qwcBD_JPEG/upload_2.jpg?type=f228_128`,
         date : getTimeStamp()
     }
-    socket.emit('joinedCaster', roomInfo)
+    socket.emit('caster-join', roomInfo)
 })
 
-socket.on('user-join', (name, userid) => {
-    console.log(`${name}(${userid})님이 접속하였습니다!`)
-    peerArr.push({
-        'name' : name,
-        'id' : userid
-    })
-    callingPeerConnection(userid)               //커넥션 연결
+// socket.on('user-join', (name, userid) => {
+//     console.log(`${name}(${userid})님이 접속하였습니다!`)
+//     peerArr.push({
+//         'name' : name,
+//         'id' : userid
+//     })
+//     callingPeerConnection(userid)               //커넥션 연결
+// })
+
+socket.on('joinedUser', (name, id) => {
+    var newUser = {
+        name : name,
+        id : id
+    }
+    clients.push(newUser)
+    createPeerConnection(newUser.id)
 })
 
 socket.on('message', (message) => {
@@ -116,6 +126,7 @@ function handleIceCandidate(e){
     }
 }
 
+//
 var turnReady
 
 function requestTurn(turnURL){

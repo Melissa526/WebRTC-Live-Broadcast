@@ -19,13 +19,36 @@ var _room = requestedRoom
 console.log(`${name}님이 ${_room}에 접속하였습니다`)
 
 //user 접속 
-socket.emit('user-join', name, socket.id)
+socket.emit('user-join', _room, name, socket.id)
 
 //Chat
 socket.on('chat-message', (name, msg) => {
 
     appendMessage(name, msg)
 })
+
+socket.on('message', (message) => {
+    if(message.type === 'offer'){
+
+    }else if(message.type === 'candidate'){
+
+    }else if(message.type === 'bye'){
+        handleRemoteHangup()
+    }else{
+        console.log('잘 못 보낸 메세지입니다!')
+    }
+
+})
+
+function hanldeRemoteHangup(id){
+    console.log('Session terminated')
+    close(id)
+}
+
+function close(id){
+    findPc(id).close()
+}
+
 
 function appendMessage(userName, msg){
     var _name = userName

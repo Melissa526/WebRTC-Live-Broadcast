@@ -10,11 +10,14 @@
 </head>
 <body>
     <label>Name :</label><input type="text" name="userName" id="userName">
-    <button id="startLiveBtn">방송시작</button>
+    <button type="button" id="startLiveBtn">방송시작</button>
+    <button type="button" id="channel-reload">새로고침</button>
     <div class="list"></div>
     <div id="channel-list">
        <ul></ul>
     </div>
+
+    
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
