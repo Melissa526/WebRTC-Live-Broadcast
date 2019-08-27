@@ -88,33 +88,32 @@ io.sockets.on('connection', (socket) => {
     })
 
     socket.on('caster-join', (roomInfo) => {
-        if(roomArr.length == 0){
-            roomArr.push(roomInfo)
-            console.log('방 추가')
-        }else{
-
-        }
-        //console.log('roomInfo: ', {roomInfo})      
-        socket.emit('roomlist', roomArr)
+        roomArr.push(roomInfo)
+        console.log(`${roomInfo.caster}가 ${roomInfo.room}을 개설했습니다!`)   
     })
     
-    socket.on('user-join', (_room, name, id) => {
-        for(var key in roomArr){
-            if(key.room == _room){
-                console.log(key.room,'에 ', name,'(',id,')님이 들어왔습니다')
-                io.to(findCaster(_room)).emit('joinedUser', name, socket.id)
-                io.sockets.to(_room).emit('joinedUser', name, id)
-            }
-        }
+    socket.on('user-join', (_room, name) => {
+        console.log(`${_room}에 ${name}(${socket.id})님이 들어왔습니다`)
+        socket.join(_room)
+        io.to(findCaster(_room)).emit('newUserJoined', name, socket.id)
+        io.sockets.to(_room).emit('joinedUser', name, socket.id, getNumClients(_room)) 
     })
 
+    socket.on('userMessage', (msg, room) =>{
+        io.to(findCaster(room)).emit('message', msg, socket.id)
+    })
+    socket.on('casterMessage', (msg, id) =>{
+        io.to(id).emit('message', msg, socket.id)
+    })
+
+    //Index.html -> 방 목록 요청 
     socket.on('requestRoomlist', () =>{
         socket.emit('roomlist', roomArr)
     })
     
     //Event on Chat :: 'Message'
     socket.on('chat-message', (_room, name, msg) => {
-        io.sockets.to(_room).emit('message', name , msg)
+        io.sockets.to(_room).emit('chat-message', name , msg)
     })
 })
 
@@ -126,4 +125,11 @@ function findCaster(roomNum){
             return onair.casterid
         }
     }
+}
+
+function getNumClients(room) {
+    var clientsInRoom = io.sockets.adapter.rooms[room];
+    var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
+
+    return numClients
 }

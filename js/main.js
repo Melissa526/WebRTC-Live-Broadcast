@@ -24,6 +24,7 @@ $(function(){
 })
 
 function addRoomList(list){
+    $('ul').html('')
     list.forEach( item => {
         console.log(item);
         appendRoom(item)

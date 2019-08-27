@@ -45,7 +45,7 @@
     border-right: none;
     float: left;
 }
-.live-booth #video{
+.live-booth .video{
     width: 100%;
     height: 100%;
     position: relative;

@@ -1,4 +1,3 @@
-var socket = io.connect()
 
 var localStream
 var pc
@@ -19,19 +18,23 @@ var sdpConstraints = {
     offerToReceiveVideo: 1              // 1 = true    
 };
 
-
-var video = document.getElementById('video')
+var video = document.getElementById('localVideo')
 const constraints = {
     audio: true,
     video: { width: 1280, height: 720 }
 };
 
-//////////////////////////////////////////////////
+/**************************** 
+          Caster Info
+*****************************/
 var title = 'Live Stream Test'
 var _room
 var clients = []
 
-/* SOCKET */
+
+/**************************** 
+            Socket
+*****************************/
 var socket = io.connect()
 
 socket.emit('create', name, title)
@@ -52,20 +55,12 @@ socket.on('createdRoom', (roomNumber) =>{
     socket.emit('caster-join', roomInfo)
 })
 
-// socket.on('user-join', (name, userid) => {
-//     console.log(`${name}(${userid})님이 접속하였습니다!`)
-//     peerArr.push({
-//         'name' : name,
-//         'id' : userid
-//     })
-//     callingPeerConnection(userid)               //커넥션 연결
-// })
-
-socket.on('joinedUser', (name, id) => {
+socket.on('joinedUser', (name, id, numberofClients) => {
     var newUser = {
         name : name,
         id : id
     }
+    $('#numoof-visitor').text(numberofClients)
     clients.push(newUser)
     createPeerConnection(newUser.id)
 })
@@ -85,12 +80,13 @@ socket.on('message', (message) => {
     }
 })
 
-//Chat
 socket.on('chat-message', (name, msg) => {
     appendMessage(name, msg)
 })
 
-/* ---------------------- PeerConnetion --------------------- */
+/**************************** 
+    WebRTC - PeerConnection
+*****************************/
 
 function findPc(id){
     for(var peer in pcArr){
@@ -100,10 +96,10 @@ function findPc(id){
     }
 }
 
-function createPeerConnection(){
+function createPeerConnection(id){
     try{
         pc = new RTCPeerConnection(null)
-        pc.onicecandidate = handleIceCandidate
+        pc.onicecandidate = handleIceCandidate(event, id)
         console.log('Created RTCPeerConnection')
     }catch(e){
         console.log('Failed to create PeerConnection.\nexception : ', e)
@@ -112,21 +108,40 @@ function createPeerConnection(){
     }
 }
 
-function handleIceCandidate(e){
-    console.log('icecandidate event: ', event)
+function handleIceCandidate(e, id){
+    console.log('icecandidate event: ', e)
     if(e.candidate){
         sendMessage({
             type : 'candidate',
             label : e.candidate.sdpMLineIndex,
             id : e.candidate.sdpMid,
             candidate : e.candidate.candidate
-        })
+        },id)
     }else{
         console.log('End of candidates.')
     }
 }
 
-//
+function hanldeRemoteHangup(id){
+    console.log('Session terminated')
+    close(id)
+}
+
+function close(id){
+    findPc(id).close()
+}
+
+function sendMessage(msg, id){
+    console.log(`sendMessage : ${msg} / ${id}`);
+    
+    socket.emit('casterMessage', msg, id)
+}
+
+function sendByeMessage(){
+    socket.emit('message', 'bye')
+}
+
+/** Setting TURN Server **/
 var turnReady
 
 function requestTurn(turnURL){
@@ -158,19 +173,13 @@ function requestTurn(turnURL){
     }
 }
 
-function hanldeRemoteHangup(id){
-    console.log('Session terminated')
-    close(id)
-}
 
-function close(id){
-    findPc(id).close()
-}
+/**************************** 
+    WebRTC- Recording Video
+*****************************/
 
-/* ---------------------- RECODING VIDEO --------------------- */
 var startBtn = document.getElementById('startButton'),
     stopBtn = document.getElementById('stopButton')
-
 
 const mediaSource = new MediaSource()
 let mediaRecorder;
@@ -187,8 +196,9 @@ function handleSourceopen(e){
 function handleSuccess(stream){
     console.log('getUserMedia() got stream : ', stream)
     localStream = stream
-    window.stream = stream
+    //window.stream = stream
     video.srcObject = stream
+    startRecording()
 }
 
 function handleDataAvailable(event) {
@@ -197,7 +207,7 @@ function handleDataAvailable(event) {
     }
   }
 
-function startLiveStream(){
+function startRecording(){
     //Setting Recording Options
     let options = {mimeType: 'video/webm;codecs=vp9'};
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
@@ -217,7 +227,7 @@ function startLiveStream(){
     }
 
     try{
-        mediaRecorder = new MediaRecorder(window.stream, options)
+        mediaRecorder = new MediaRecorder(localStream, options)
     }catch(e){
         console.log('Error : ', e);
         return ;
@@ -262,7 +272,8 @@ function downloadRecording(){
 
 async function init(constraints){
     try {
-        startLiveStream()
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        handleSuccess(stream);
     } catch (e) {
         console.error('navigator.getUserMedia error:', e)
         alert(`Error occured on getUserMedia() : ${e} `)
@@ -272,3 +283,64 @@ async function init(constraints){
 startBtn.addEventListener('click', ()=>{ init(constraints); startBtn.disabled = true; })
 stopBtn.addEventListener('click', ()=>{ stopRecording(); console.log('Stop Recording....')})
 mediaSource.addEventListener('sourceopen', handleSourceopen, false)
+
+/************** 
+    Chatting
+***************/
+
+function appendMessage(userName, msg){
+    var _name = userName
+    var text;
+    if (_name == 'caster') {
+        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
+    } else {
+        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
+    }
+    $('#messages').append($(`<li>`).html(text))
+    $(".chatroom").scrollTop($("#msgDiv")[0].scrollHeight);
+}
+
+function onChatSubmit(){
+    if(event.keyCode == 13){
+        event.preventDefault()
+        var msg = $('#msg').val().trim();
+        if (msg != "" && msg != null) {
+            socket.emit('chat-message', _room, 'caster', msg)
+        }
+        $('#msg').val('');
+    }
+}
+
+/*************** 
+   Useful Func
+****************/
+
+function getTimeStamp() {
+    var d = new Date();
+    var stamp =
+      leadingZeros(d.getFullYear(), 4) + '-' +
+      leadingZeros(d.getMonth() + 1, 2) + '-' +
+      leadingZeros(d.getDate(), 2) + ' ' +
+      leadingZeros(d.getHours(), 2) + ':' +
+      leadingZeros(d.getMinutes(), 2) + ":00";
+    console.log('now is', stamp, ' ...');
+    
+    return stamp;
+}
+
+function leadingZeros(n, digits) {
+   var zero = '';
+   n = n.toString();
+
+    if (n.length < digits) {
+      for (i = 0; i < digits - n.length; i++)
+        zero += '0';
+    }
+    return zero + n;
+}
+
+$(function(){
+    init(constraints); 
+    startBtn.disabled = true
+    stopBtn.disabled = true
+})
