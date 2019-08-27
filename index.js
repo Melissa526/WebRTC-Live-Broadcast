@@ -45,7 +45,9 @@ app.get('/caster/:page', (req, res) => {
     }) 
 })
 
-app.get('/user', (req, res) => {
+app.get('/user/:page', (req, res) => {
+    var roomRequest = req.params.page;
+
     fs.readFile(`./user.html`, (err, data) => {
         if(err){
             res.send(err)
@@ -91,21 +93,18 @@ io.sockets.on('connection', (socket) => {
         }else{
 
         }
-        console.log('roomInfo: ', {roomInfo})      
+        //console.log('roomInfo: ', {roomInfo})      
         socket.emit('roomlist', roomArr)
     })
 
     socket.on('requestRoomlist', () =>{
         socket.emit('roomlist', roomArr)
     })
-    socket.on('user-join', (room, name) => {
-       socket.name = name
-    })
-   
+    
     //Event on Chat :: 'Message'
-    socket.on('message', (_room, name, msg) => {
+    socket.on('chat-message', (_room, name, msg) => {
         io.sockets.to(_room).emit('message', name , msg)
     })
 })
 
-server.listen(3001, () => { console.log('::: Port listening 3001 :::'); } )
+server.listen(5571, () => { console.log('::: Port listening 5571 :::'); } )

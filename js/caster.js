@@ -1,18 +1,8 @@
-//var url = require('url')
-//var queryString = url.parse(document., true);
-// var para = document.location.href.split("?");
-// var mymy = para[1].split('=')[1];
-// console.log(para[1].split('=')[1]);
-
-/*  CASTER  */
 var socket = io.connect()
 
 var localStream
-var remoteStream
-var peer
-var peerArr = []
-var servers = null
-
+var pc
+var pcArr 
 var pcConfig = {
     'iceServers': [
         { 'urls': 'stun:stun.l.google.com:19302' }
@@ -29,18 +19,21 @@ var sdpConstraints = {
     offerToReceiveVideo: 1              // 1 = true    
 };
 
+
 var video = document.getElementById('video')
 const constraints = {
     audio: true,
     video: { width: 1280, height: 720 }
 };
 
-
-/* ---------------------- SOCKET --------------------- */
+//////////////////////////////////////////////////
 var title = 'Live Stream Test'
 var _room
 
-//caster 접속 -> 방생성
+
+/* SOCKET */
+var socket = io.connect()
+
 socket.emit('create', name, title)
 document.getElementById('onair-title').innerHTML = title
 
@@ -58,54 +51,121 @@ socket.on('createdRoom', (roomNumber) =>{
     socket.emit('joinedCaster', roomInfo)
 })
 
-
-socket.on('conflicted', (room) => {
-    socket.leave(room)
+socket.on('user-join', (name, userid) => {
+    console.log(`${name}(${userid})님이 접속하였습니다!`)
+    peerArr.push({
+        'name' : name,
+        'id' : userid
+    })
+    callingPeerConnection(userid)               //커넥션 연결
 })
+
+socket.on('message', (message) => {
+    console.log('Client received message: ', message)
+    if(message.type === 'answer'){
+        pc.setRemoteDescription(new RTCSessionDescription(message))
+    }else if(message.type === 'candidate'){
+        var candidate = new RTCIceCandidate({
+            sdpMLineIndex : message.label,
+            candidate : message.candidate
+        })
+        pc.addIceCandidate(candidate)
+    }else if(message.type === 'bye'){
+        hanldeRemoteHangup()
+    }
+})
+
 //Chat
-socket.on('message', (name, msg) => {
+socket.on('chat-message', (name, msg) => {
     appendMessage(name, msg)
 })
 
-/* ---------------------- STREAM VIDEO --------------------- */
+/* ---------------------- PeerConnetion --------------------- */
 
-function gotStream(stream){
-    console.log('Received local stream');
-    video.scrObject = stream
-    window.localStream = stream;
+function findPc(id){
+    for(var peer in pcArr){
+        if(peer.id == id){
+            return peer.id
+        }
+    }
 }
 
-function start(){
-    console.log('Requesting local stream!')
-
-    navigator.mediaDevices.getUserMedia({
-        video : true,
-        audio : true
-    }).then(gotStream)
-    .catch(e => {
-        console.log('getUserMedia() error : ' , e);
-    })
+function createPeerConnection(){
+    try{
+        pc = new RTCPeerConnection(null)
+        pc.onicecandidate = handleIceCandidate
+        console.log('Created RTCPeerConnection')
+    }catch(e){
+        console.log('Failed to create PeerConnection.\nexception : ', e)
+        alert('Cannot create RTCPeerConnection object.')
+        return ;
+    }
 }
 
-function createOffer(socketId){
+function handleIceCandidate(e){
+    console.log('icecandidate event: ', event)
+    if(e.candidate){
+        sendMessage({
+            type : 'candidate',
+            label : e.candidate.sdpMLineIndex,
+            id : e.candidate.sdpMid,
+            candidate : e.candidate.candidate
+        })
+    }else{
+        console.log('End of candidates.')
+    }
+}
 
+var turnReady
+
+function requestTurn(turnURL){
+    var turnExists = false;
+    for(var i in pcConfig.iceServers){
+        if(pcConfig.iceServers[i].urls.substr(0,5) === 'turn:'){
+            turnExists = true;
+            turnReady = true;
+            break;
+        }
+    }
+    if(!turnExists){
+        console.log('Getting TURN server from', turnURL)
+
+        var xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState === 4 && xhr.status === 200){
+                var turnServer = JSON.parse(xhr.responseText)
+                console.log('Got TURN server: ', turnServer)
+                pcConfig.iceServers.push({
+                    'urls' : 'turn:' + turnServer.username + '@' + turnServer.turn,
+                    'credential' : turnServer.password
+                })
+                turnReady = true
+            }
+        }
+        xhr.open('GET', turnURL, true)
+        xhr.send()
+    }
+}
+
+function hanldeRemoteHangup(id){
+    console.log('Session terminated')
+    close(id)
+}
+
+function close(id){
+    findPc(id).close()
 }
 
 /* ---------------------- RECODING VIDEO --------------------- */
 var startBtn = document.getElementById('startButton'),
     stopBtn = document.getElementById('stopButton')
 
+
 const mediaSource = new MediaSource()
 let mediaRecorder;
 let recordedBlobs = [];
 let sourceBuffer;
-    
 var videoSeq = 0;
-    
-startBtn.addEventListener('click', ()=>{ init(constraints); startBtn.disabled = true; })
-stopBtn.addEventListener('click', ()=>{ stopRecording(); console.log('Stop Recording....')})
-mediaSource.addEventListener('sourceopen', handleSourceopen, false)
-
 
 function handleSourceopen(e){
     console.log('MediaSource Opened')
@@ -115,6 +175,7 @@ function handleSourceopen(e){
 
 function handleSuccess(stream){
     console.log('getUserMedia() got stream : ', stream)
+    localStream = stream
     window.stream = stream
     video.srcObject = stream
 }
@@ -153,7 +214,7 @@ function startLiveStream(){
     
     //녹화시작: rec버튼 무효/stop버튼 유효화 
     stopBtn.disabled = false
-
+    //레코딩이 끝나면 저장
     mediaRecorder.onstop = function(e){
         downloadRecording()
         console.log('Recoreded stop : ', e);
@@ -166,19 +227,14 @@ function startLiveStream(){
 }
 
 function stopRecording(){
-    //녹화중지: rec버튼 유효/stop버튼 무효화 
     stopBtn.disabled = true
     mediaRecorder.stop()
     console.log('Recorded Blobs: ', recordedBlobs);
-
-    var buttonBox = $('#button-box-download')
-    buttonBox.html($(`<button id="downButton">`).html('DOWNLOAD'))
 }
 
 function downloadRecording(){
     ++videoSeq;
     //Blob 객체는 파일과 흡사한 불변 객체로 raw data
-
     const blob = new Blob(recordedBlobs, {type: 'video/webm'});
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -193,11 +249,8 @@ function downloadRecording(){
     }, 100);
 }
 
-//When the Start Button is Pressed, initialize stream(getUserMedia)
 async function init(constraints){
     try {
-        // const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        // handleSuccess(stream);
         startLiveStream()
     } catch (e) {
         console.error('navigator.getUserMedia error:', e)
@@ -205,76 +258,6 @@ async function init(constraints){
     }
 }
 
-/* ------------------------------------------- */
-
-function appendMessage(userName, msg){
-    var _name = userName
-    var text;
-    if (_name === 'caster') {
-        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
-    } else if(_name === 'user'){
-        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
-    } else {
-        text = `<p>${msg}</p>`
-    }
-    $('#messages').append($(`<li>`).html(text))
-}
-
-function onChatSubmit(){
-    if(event.keyCode == 13){
-        event.preventDefault()
-        var msg = $('#msg').val().trim();
-        if (msg != "" && msg != null) {
-           //console.log(`[Caster-${name}] ${msg}`)
-            socket.emit('message', _room, 'caster', msg)
-        }
-        $('#msg').val('');
-        $(".chatroom").scrollTop($("#msgDiv")[0].scrollHeight);
-    }
-    var e = jQuery.Event( "keypress", { keyCode: 13 } ); 
-    $("#msg").trigger(e);
-}
-
-function getTimeStamp() {
-    var d = new Date();
-  
-    var stamp =
-      leadingZeros(d.getFullYear(), 4) + '-' +
-      leadingZeros(d.getMonth() + 1, 2) + '-' +
-      leadingZeros(d.getDate(), 2) + ' ' +
-  
-      leadingZeros(d.getHours(), 2) + ':' +
-      leadingZeros(d.getMinutes(), 2) + ":00";
-  
-    
-    console.log('now is', stamp, ' ...');
-    
-    return stamp;
-  }
-
-function leadingZeros(n, digits) {
-   var zero = '';
-   n = n.toString();
-  
-    if (n.length < digits) {
-      for (i = 0; i < digits - n.length; i++)
-        zero += '0';
-    }
-    return zero + n;
-}
-
-$(function(){
-    startBtn.disabled = false
-    stopBtn.disabled = true
-    //Download Button
-    $(document).on('click', '#downButton', () => {
-        downloadRecording()
-    })
-    
-    // //On Chat
-    // $('form').submit(function (e) {
-    //     e.preventDefault();
-        
-    //     return false;
-    // });
-})
+startBtn.addEventListener('click', ()=>{ init(constraints); startBtn.disabled = true; })
+stopBtn.addEventListener('click', ()=>{ stopRecording(); console.log('Stop Recording....')})
+mediaSource.addEventListener('sourceopen', handleSourceopen, false)

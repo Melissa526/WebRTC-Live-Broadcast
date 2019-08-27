@@ -11,29 +11,26 @@ socket.emit('requestRoomlist')
 socket.on('roomlist', (rooms) => {
     console.log(rooms)
     if(rooms.length == 0){
-        $('ul').append(`<li>
-                            개설된 방이 없습니다!
-                        </li>`)
+        $('ul').append(`<li>개설된 방이 없습니다!</li>`)
     }else{
         addRoomList(rooms)
     }
 })
 
-
 function addRoomList(list){
-    for(var item in list){
-     console.log(item);
-     appendRoom(item)
+    for(var i=0 ; i<list.length ; i++){
+     console.log(list[i]);
+     appendRoom(list[i])
 
     }
 }
 
 function appendRoom(item){
     var roomUnit = `<li class="channel-box">
-                    <a href="/caster/${item.room}">
+                    <a href="/user/${item.room}">
                         <img src="${item.thumb}" width="228" height="128">
                     </a>
-                    <p><a href="/caster/${item.room}>Test</a></p>
+                    <p><a href="/user/${item.room}>Test</a></p>
                     <div class="channel-info">
                         <div>
                             <span>${item.date}</span>

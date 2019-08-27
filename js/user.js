@@ -1,6 +1,10 @@
 /*  USER  */
 var socket = io.connect()
 
+var url = location.href
+var params = url.split('/')
+var requestedRoom = params[4]           //room number 
+
 var video = document.getElementById('video')
 const constraints = {
     audio: true,
@@ -11,41 +15,38 @@ const constraints = {
 
 /* ---------------------- SOCKET --------------------- */
 var name = prompt('닉네임을 입력해주세요!')
-var room = prompt('접속하실 방 번호를 입력해주세요')
+var _room = requestedRoom
+console.log(`${name}님이 ${_room}에 접속하였습니다`)
 
 //user 접속 
-socket.emit('user-join', room, name)
+socket.emit('user-join', name, socket.id)
 
 //Chat
-socket.on('message', (name, msg) => {
+socket.on('chat-message', (name, msg) => {
+
     appendMessage(name, msg)
 })
 
 function appendMessage(userName, msg){
     var _name = userName
-    var text;
-    if (_name) {
-        text = `<p class="nameSpace">[${userName}]</p>&nbsp;<p>${msg}</p>`
+    var text
+    if (_name === 'caster') {
+        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
     } else {
-        text = `<p>${msg}</p>`
-    }
+        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
+    } 
     $('#messages').append($(`<li>`).html(text))
+    $(".chatroom").scrollTop($("#msgDiv")[0].scrollHeight);
 }
 
-$(function(){
-
-    //On Chat
-    $('form').submit(function (e) {
-        e.preventDefault();
+function onChatSubmit(){
+    if(event.keyCode == 13){
+        event.preventDefault()
         var msg = $('#msg').val().trim();
         if (msg != "" && msg != null) {
-            socket.emit('message', room, name, msg)
-            console.log(`[User-${name}] ${msg}`);
-            
-            //appendMessage('caster', msg)
+            console.log(`[${name}] : ${msg}`)
+            socket.emit('message', _room, name, msg)
         }
         $('#msg').val('');
-        return false;
-    });
-    
-})
+    }
+}
