@@ -38,6 +38,7 @@ var clients = []
 var socket = io.connect()
 
 socket.emit('create', name, title)
+
 document.getElementById('onair-title').innerHTML = title
 
 socket.on('createdRoom', (roomNumber) =>{
@@ -97,6 +98,8 @@ function findPc(id){
 }
 
 function createPeerConnection(id){
+    pcArr.push('')
+
     try{
         pc = new RTCPeerConnection(null)
         pc.onicecandidate = handleIceCandidate(event, id)
@@ -133,13 +136,16 @@ function close(id){
 
 function sendMessage(msg, id){
     console.log(`sendMessage : ${msg} / ${id}`);
-    
     socket.emit('casterMessage', msg, id)
 }
 
 function sendByeMessage(){
     socket.emit('message', 'bye')
 }
+
+window.onbeforeunload = function () {
+    sendByeMessage()
+};
 
 /** Setting TURN Server **/
 var turnReady

@@ -36,12 +36,12 @@ function appendRoom(item){
                     <a href="/user/${item.room}">
                         <img src="${item.thumb}" width="228" height="128">
                     </a>
-                    <p><a href="/user/${item.room}>${item.casterid}</a></p>
+                    <p><a href="/user/${item.room}>${item.title}</a></p>
                     <div class="channel-info">
                         <div>
-                            <span>${item.date}</span>
-                            <span>&nbsp;|&nbsp;</span>
-                            <span>${item.caster}</span>
+                            <p>${item.date}</p>
+                            <p>&nbsp;|&nbsp;</p>
+                            <p>${item.caster}</p>
                         </div>
                         <div>
                             <!-- 접속자수 -->

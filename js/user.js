@@ -114,7 +114,6 @@ function handleRemoteStreamRemoved(event) {
     console.log('Remote stream removed. Event: ', event);
 }
 
-
 function hanldeRemoteHangup(id){
     console.log('Session terminated')
     close(id)
@@ -136,19 +135,14 @@ function sendByeMessage(){
 
 
 
-/************** 
+/*******************
     Chatting
-***************/
+*******************/
 
 function appendMessage(userName, msg){
     var _name = userName
     var text;
     text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
-    // if (_name == 'caster') {
-    //     text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
-    // } else {
-    //     text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
-    // }
     $('#messages').append($(`<li>`).html(text))
     $(".chatroom").scrollTop($("#msgDiv")[0].scrollHeight);
 }
@@ -163,3 +157,8 @@ function onChatSubmit(){
         $('#msg').val('');
     }
 }
+
+
+
+
+

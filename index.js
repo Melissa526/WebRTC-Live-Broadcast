@@ -47,9 +47,8 @@ app.get('/caster/:page', (req, res) => {
 })
 
 app.get('/user/:page', (req, res) => {
-    var roomRequest = req.params.page;
 
-    fs.readFile(`./user.html`, (err, data) => {
+    fs.readFile('./user.html', (err,data) => {
         if(err){
             res.send(err)
         }else{
@@ -58,6 +57,7 @@ app.get('/user/:page', (req, res) => {
             res.end()
         }
     })
+    
 })
 
 /* -------------------------------------------------------------- */
