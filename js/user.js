@@ -7,7 +7,7 @@ var requestedRoom = params[4]           //room number
 
 var localStream
 var remoteStream
-var remoteVideo = document.getElementById('remoteVideo')
+var remoteVideo = document.getElementById('video')
 var pc;
 var pcConfig = {
     'iceServers': [
@@ -23,7 +23,6 @@ var pcConfig = {
     ]
 };
 
-var video = document.getElementById('video')
 const constraints = {
     audio: true,
     video: {
@@ -58,7 +57,6 @@ socket.on('roomSetting', (roomInfo) => {
     console.log(roomInfo)
     $('#channel-name').text(roomInfo.caster)
     $('#onair-title').text(roomInfo.title)
-
 })
 
 socket.on('message', (message) => {
@@ -100,12 +98,13 @@ socket.on('livedCaster', (room) =>{
 function createPeerConnectionUser(){    
     try{
         pc = new RTCPeerConnection(null)
-        pc.onicecandidate = handleIceCandidateUser
         pc.onaddstream =  handleRemoteStreamAdded
+        pc.onicecandidate = handleIceCandidateUser
         pc.onremovestream = handleRemoteStreamRemoved
-        console.log('피어커넥션(user) 생성완료');
+        console.log('(User)PeerConnection Created')
+
     }catch(e){
-        console.log('피어커넥션(User) 생성오류, e: ', e);
+        console.log('Error in Creating (User)PeerConnection , e: ', e);
         alert('Cannot create RTCPeerConnection object.');
         return;
     }
@@ -114,19 +113,38 @@ function createPeerConnectionUser(){
 function sendAnswer(){
     console.log('Sending answer to Remote Peer ');
     pc.createAnswer()
-    .then(setLocalAndSendMessageUser, onCreateSessionDescriptionError)
+    .then(setLocalAndSendMessageUser, handleCreateSessionDescriptionError)
 }
 
-function setLocalAndSendMessageUser(sessionDescription){
-    pc.setLocalDescription(sessionDescription)
-    console.log('setLocalAndSendMessage')
-    sendMessage(sessionDescription)
+function setLocalAndSendMessageUser(sdp){
+    pc.setLocalDescription(sdp)
+    console.log('setLocalAndSendMessage : ', sdp)
+    sendMessage(sdp)
+}
+
+function handleCreateSessionDescriptionError(err){
+    console.log('Failed to create session descriptioin : ', err.toString())
 }
 
 function handleRemoteStreamAdded(event) {
     console.log('Remote stream added.');
     remoteStream = event.stream;
     remoteVideo.srcObject = remoteStream;
+}
+
+function handleIceCandidateUser(event){
+    console.log('IceCandidate event : ', event)
+    if(event.candidate){
+        sendMessage({
+            type : 'candidate',
+            label : event.candidate.sdpMLineIndex,
+            id : event.candidate.sdpMid,
+            candidate : event.candidate.candidate
+        })
+    }else{
+        console.log('End of candidate')
+    }
+    
 }
 
 function handleRemoteStreamRemoved(event) {

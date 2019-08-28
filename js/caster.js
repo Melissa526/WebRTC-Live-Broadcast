@@ -1,7 +1,10 @@
-
+/**************************** 
+        RTC & Peer Info
+*****************************/
 var localStream
+var remoteStream
 var pc
-var pcArr 
+var pcArr = []
 var pcConfig = {
     'iceServers': [
         { 'urls': 'stun:stun.l.google.com:19302' }
@@ -63,19 +66,21 @@ socket.on('joinedUser', (name, id, numberofClients) => {
     }
     $('#numoof-visitor').text(numberofClients)
     clients.push(newUser)
+    console.log(`(New user joined)${newUser.name}님이 접속하였습니다!`);
     casterPeerCreate(newUser.id)
 })
 
-socket.on('message', (message) => {
+socket.on('message', (message,  id) => {
     console.log('Client received message: ', message)
     if(message.type === 'answer'){
-        pc.setRemoteDescription(new RTCSessionDescription(message))
+        console.log('Received Answer message')
+        findPc(id).setRemoteDescription(new RTCSessionDescription(message))
     }else if(message.type === 'candidate'){
         var candidate = new RTCIceCandidate({
             sdpMLineIndex : message.label,
             candidate : message.candidate
         })
-        pc.addIceCandidate(candidate)
+        findPc(id).addIceCandidate(candidate)
     }else if(message.type === 'bye'){
         hanldeRemoteHangup()
     }
@@ -89,39 +94,44 @@ socket.on('chat-message', (name, msg) => {
     WebRTC - PeerConnection
 *****************************/
 
-function findPc(id){
-    for(var peer in pcArr){
-        if(peer.id == id){
-            return peer.id
+function findPc(id) {
+    for (let i = 0; i < pcArr.length; i++) {
+        if (pcArr[i].id === id) {
+            return pcArr[i].pc
         }
     }
 }
-
 function casterPeerCreate(id) {
     console.log('피어 커넥션 생성');
 
-    pcArr.push({ 'id': id, pc: createPeerConnection(id) })
-
-    findPc(id).addStream(localStream)
+    pcArr.push({ 'id': id, 'pc': createPeerConnection(id) })
+    console.log('생성된 피어 : ', findPc(id).pc );
+    
+    //findPc(id).addStream(localStream)
     sendOffer(id)
 }
 
 function createPeerConnection(id){
-
+    var emptyPc
     try{
-        pc = new RTCPeerConnection(null)
-        pc.onicecandidate = handleIceCandidate(event, id)
+        emptyPc = new RTCPeerConnection(null)
+        emptyPc.onicecandidate = function(event){
+            handleIceCandidateCaster(event, id)
+        }
+        emptyPc.onaddStream = handleRemoteStreamAdded
+        emptyPc.onremovestream = handleRemoteStreamRemoved
         console.log('Created RTCPeerConnection')
+        
+        return emptyPc
     }catch(e){
         console.log('Failed to create PeerConnection.\nexception : ', e)
         alert('Cannot create RTCPeerConnection object.')
-        return ;
+        return;
     }
 }
 
 function sendOffer(id) {
     console.log(`Send Offer to Client(${id})`);
-    
     findPc(id).createOffer()
         .then(function (sessionDescription) {
             setLocalAndSendMessageCaster(sessionDescription, id)
@@ -132,14 +142,16 @@ function sendOffer(id) {
 }
 
 function setLocalAndSendMessageCaster(sdp, id){
-
+    findPc(id).setLocalDescription(sdp)
+    console.log('SetLocal And SendMessage sending message : ', sdp)
+    sendMessage(sdp, id)
 }
 
 function handleCreateOfferError(err){
     console.log(`Error : ${err}`);
 }
 
-function handleIceCandidate(e, id){
+function handleIceCandidateCaster(e, id){
     console.log('icecandidate event: ', e)
     if(e.candidate){
         sendMessage({
@@ -151,6 +163,16 @@ function handleIceCandidate(e, id){
     }else{
         console.log('End of candidates.')
     }
+}
+
+function handleRemoteStreamAdded(event){
+    console.log('Remote Stream Added')
+    remoteStream = event.stream
+    remoteVideo.srcObject = remoteStream
+}
+
+function handleRemoteStreamRemoved(event){
+    console.log('Remote Stream Removed : ', event);
 }
 
 function hanldeRemoteHangup(id){
@@ -212,8 +234,8 @@ function requestTurn(turnURL){
     WebRTC- Recording Video
 *****************************/
 
-var startBtn = document.getElementById('startButton'),
-    stopBtn = document.getElementById('stopButton')
+//var startBtn = document.getElementById('startButton')
+var stopBtn = document.getElementById('stopButton')
 
 const mediaSource = new MediaSource()
 let mediaRecorder;
@@ -315,7 +337,7 @@ async function init(constraints){
     }
 }
 
-startBtn.addEventListener('click', ()=>{ init(constraints); startBtn.disabled = true; })
+//startBtn.addEventListener('click', ()=>{ init(constraints); startBtn.disabled = true; })
 stopBtn.addEventListener('click', ()=>{ stopRecording(); console.log('Stop Recording....')})
 mediaSource.addEventListener('sourceopen', handleSourceopen, false)
 
@@ -326,11 +348,7 @@ mediaSource.addEventListener('sourceopen', handleSourceopen, false)
 function appendMessage(userName, msg){
     var _name = userName
     var text;
-    if (_name == 'caster') {
-        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
-    } else {
-        text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
-    }
+    text = `<p class="nameSpace">${_name}</p>&nbsp;<p>${msg}</p>`
     $('#messages').append($(`<li>`).html(text))
     $(".chatroom").scrollTop($("#msgDiv")[0].scrollHeight);
 }
@@ -376,6 +394,6 @@ function leadingZeros(n, digits) {
 
 $(function(){
     init(constraints); 
-    startBtn.disabled = true
+    //startBtn.disabled = true
     stopBtn.disabled = true
 })

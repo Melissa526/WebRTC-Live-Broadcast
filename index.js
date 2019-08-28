@@ -3,10 +3,15 @@ const express = require('express'),
       https = require('https'),
       socketIO = require('socket.io'),
       fs = require('fs')
-var os = require('os')
 var app = express()
 
 var roomNumber
+var caster
+var roomArr = []
+
+/*******************
+      Server
+*******************/
 
 //Allow to use STATIC Files
 app.use('/css/', express.static('./css'))
@@ -60,13 +65,49 @@ app.get('/user/:page', (req, res) => {
     
 })
 
-/* -------------------------------------------------------------- */
+/*******************
+    Useful func
+*******************/
+
+function findCaster(roomNum){
+    
+    // for(var key in roomArr){
+    //     if(key.room == roomNum){
+    //         return key.casterid
+    //     }
+    // }
+
+    for(let i=0 ; i<roomArr.length ; i++){
+        if(roomArr[i].room == roomNum){
+            return roomArr[i].casterid
+        }
+    }
+}
+
+function getNumClients(room) {
+    var clientsInRoom = io.sockets.adapter.rooms[room];
+    var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
+    return numClients
+}
+
+function getRoomInfo(roomNum){
+    for(var one in roomArr){
+        if(one.room === roomNum){
+            console.log('찾았다!!', onair)
+            return one
+        }
+    }
+}
+
+
+
+/*******************
+       Socket
+*******************/
 const server = https.createServer(options, app)
 const io = socketIO(server)
 
-var live
-var caster
-var roomArr = []
+
 
 io.sockets.on('connection', (socket) => {
 
@@ -101,7 +142,9 @@ io.sockets.on('connection', (socket) => {
     })
 
     socket.on('userMessage', (msg, room) =>{
-        io.to(findCaster(room)).emit('message', msg, socket.id)
+        var casterid = findCaster(room)
+        console.log('casterid : ', casterid);
+        io.to(casterid).emit('message', msg, socket.id)
     })
     socket.on('casterMessage', (msg, id) =>{
         io.to(id).emit('message', msg, socket.id)
@@ -116,29 +159,20 @@ io.sockets.on('connection', (socket) => {
     socket.on('chat-message', (_room, name, msg) => {
         io.sockets.to(_room).emit('chat-message', name , msg)
     })
+
+    // socket.on('disconnect', function () {
+    //     for (let i = 0; i < roomArr.length; i++) {
+    //         if (roomArr[i].caster === socket.id) {
+    //             var room = roomArr[i].room
+    //             io.in(room).clients((error, socketIds) => {
+    //                 socketIds.forEach(socketId => io.to(socketId).emit('chatMsg', { type: 'leaveCaster', class_num: room }));
+    //             });
+    //             roomArr.splice(i, 1);
+    //             break;
+    //         }
+    //     }
+    // })
 })
 
 server.listen(5571, () => { console.log('::: Port listening 5571 :::'); } )
 
-function findCaster(roomNum){
-    for(var onair in roomArr){
-        if(onair.room == roomNum){
-            return onair.casterid
-        }
-    }
-}
-
-function getNumClients(room) {
-    var clientsInRoom = io.sockets.adapter.rooms[room];
-    var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
-    return numClients
-}
-
-function getRoomInfo(roomNum){
-    for(var one in roomArr){
-        if(one.room === roomNum){
-            console.log('찾았다!!', onair)
-            return one
-        }
-    }
-}
