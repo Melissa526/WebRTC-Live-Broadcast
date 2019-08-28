@@ -46,8 +46,19 @@ console.log(`${name}님이 ${_room}에 접속하였습니다`)
 //user 접속 
 socket.emit('user-join', _room, name)
 
-socket.on('joinedUser', (name, id, numberofClients) => {
+socket.on('joinedUser', (name, id, numberofClients, roomInfo) => {
     $('#numoof-visitor').text(numberofClients)
+    console.log(roomInfo);
+    //$('#channel-name').text('('+roomInfo.room+')')
+    //$('#onair-title').text(roomInfo.title)
+})
+
+socket.on('roomSetting', (roomInfo) => {
+    console.log('정보 세팅하기');
+    console.log(roomInfo)
+    $('#channel-name').text(roomInfo.caster)
+    $('#onair-title').text(roomInfo.title)
+
 })
 
 socket.on('message', (message) => {
@@ -74,6 +85,14 @@ socket.on('message', (message) => {
 socket.on('chat-message', (name, msg) => {
     appendMessage(name, msg)
 })
+
+socket.on('livedCaster', (room) =>{
+    alert('방송이 종료되었습니다')
+    location.href='https://localhost:5571/'
+    //location.href='http://192.168.10.169:8787/dolduck/live-home.do'
+})
+
+
 
 /**************************** 
     WebRTC - PeerConnection

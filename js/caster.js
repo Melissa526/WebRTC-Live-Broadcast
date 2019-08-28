@@ -46,12 +46,12 @@ socket.on('createdRoom', (roomNumber) =>{
     console.log(`this room number is ${_room}`)
 
     var roomInfo = {
-        room : _room,
-        caster : name,
-        casterid : socket.id,
-        title : title,
-        thumb : `https://v-phinf.pstatic.net/20190813_56/1565623602340qwcBD_JPEG/upload_2.jpg?type=f228_128`,
-        date : getTimeStamp()
+        'room' : _room,
+        'caster' : name,
+        'casterid' : socket.id,
+        'title' : title,
+        'thumb' : `https://v-phinf.pstatic.net/20190813_56/1565623602340qwcBD_JPEG/upload_2.jpg?type=f228_128`,
+        'date' : getTimeStamp()
     }
     socket.emit('caster-join', roomInfo)
 })
@@ -63,7 +63,7 @@ socket.on('joinedUser', (name, id, numberofClients) => {
     }
     $('#numoof-visitor').text(numberofClients)
     clients.push(newUser)
-    createPeerConnection(newUser.id)
+    casterPeerCreate(newUser.id)
 })
 
 socket.on('message', (message) => {
@@ -97,8 +97,16 @@ function findPc(id){
     }
 }
 
+function casterPeerCreate(id) {
+    console.log('피어 커넥션 생성');
+
+    pcArr.push({ 'id': id, pc: createPeerConnection(id) })
+
+    findPc(id).addStream(localStream)
+    sendOffer(id)
+}
+
 function createPeerConnection(id){
-    pcArr.push('')
 
     try{
         pc = new RTCPeerConnection(null)
@@ -109,6 +117,26 @@ function createPeerConnection(id){
         alert('Cannot create RTCPeerConnection object.')
         return ;
     }
+}
+
+function sendOffer(id) {
+    console.log(`Send Offer to Client(${id})`);
+    
+    findPc(id).createOffer()
+        .then(function (sessionDescription) {
+            setLocalAndSendMessageCaster(sessionDescription, id)
+        })
+        .catch(function (err) {
+            handleCreateOfferError(err)
+        })
+}
+
+function setLocalAndSendMessageCaster(sdp, id){
+
+}
+
+function handleCreateOfferError(err){
+    console.log(`Error : ${err}`);
 }
 
 function handleIceCandidate(e, id){
@@ -275,6 +303,7 @@ function downloadRecording(){
       window.URL.revokeObjectURL(url);
     }, 100);
 }
+
 
 async function init(constraints){
     try {

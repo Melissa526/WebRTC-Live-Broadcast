@@ -88,6 +88,7 @@ io.sockets.on('connection', (socket) => {
     })
 
     socket.on('caster-join', (roomInfo) => {
+        //console.log('<<<생성된 방 정보>>>\n', roomInfo);
         roomArr.push(roomInfo)
         console.log(`${roomInfo.caster}가 ${roomInfo.room}을 개설했습니다!`)   
     })
@@ -96,7 +97,7 @@ io.sockets.on('connection', (socket) => {
         console.log(`${_room}에 ${name}(${socket.id})님이 들어왔습니다`)
         socket.join(_room)
         io.to(findCaster(_room)).emit('newUserJoined', name, socket.id)
-        io.sockets.to(_room).emit('joinedUser', name, socket.id, getNumClients(_room)) 
+        io.sockets.to(_room).emit('joinedUser', name, socket.id, getNumClients(_room), getRoomInfo(_room) ) 
     })
 
     socket.on('userMessage', (msg, room) =>{
@@ -130,6 +131,14 @@ function findCaster(roomNum){
 function getNumClients(room) {
     var clientsInRoom = io.sockets.adapter.rooms[room];
     var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
-
     return numClients
+}
+
+function getRoomInfo(roomNum){
+    for(var one in roomArr){
+        if(one.room === roomNum){
+            console.log('찾았다!!', onair)
+            return one
+        }
+    }
 }
