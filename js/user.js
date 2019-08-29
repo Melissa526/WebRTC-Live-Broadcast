@@ -5,7 +5,6 @@ var url = location.href
 var params = url.split('/')
 var requestedRoom = params[4]           //room number 
 
-var localStream
 var remoteStream
 var remoteVideo = document.getElementById('video')
 var pc;
@@ -59,22 +58,22 @@ socket.on('roomSetting', (roomInfo) => {
     $('#onair-title').text(roomInfo.title)
 })
 
-socket.on('message', (message) => {
-    if(message.type === 'offer'){
+socket.on('message', (msg) => {
+    if(msg.type === 'offer'){
         console.log(`(Offer)받은메시지`)
         createPeerConnectionUser()
-        pc.setRemoteDescription(new RTCSessionDescription(message))
+        pc.setRemoteDescription(new RTCSessionDescription(msg))
         sendAnswer()
-    }else if(message.type === 'candidate'){
+    } else if (msg.type === 'candidate') {
         var candidate = new RTCIceCandidate({
             sdpMLineIndex: msg.label,
             candidate: msg.candidate
-        });
+        })
         pc.addIceCandidate(candidate)
-    }else if(message.type === 'bye'){
+    } else if(msg.type === 'bye'){
         handleRemoteHangup()
     }else{
-        console.log(`잘 못 보낸 메세지입니다! ${message}`)
+        console.log(`잘 못 보낸 메세지입니다! ${msg}`)
     }
 
 })
@@ -158,6 +157,7 @@ function hanldeRemoteHangup(id){
 }
 
 function close(id){
+    alert('방송이 종료되었습니다')
     findPc(id).close()
 }
 

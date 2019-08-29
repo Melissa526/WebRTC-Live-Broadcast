@@ -74,13 +74,13 @@ socket.on('message', (message,  id) => {
     console.log('Client received message: ', message)
     if(message.type === 'answer'){
         console.log('Received Answer message')
-        findPc(id).setRemoteDescription(new RTCSessionDescription(message))
+        commit(findPc(id).setRemoteDescription(new RTCSessionDescription(message)),id)
     }else if(message.type === 'candidate'){
         var candidate = new RTCIceCandidate({
             sdpMLineIndex : message.label,
             candidate : message.candidate
         })
-        findPc(id).addIceCandidate(candidate)
+        commit(findPc(id).addIceCandidate(candidate), id)
     }else if(message.type === 'bye'){
         hanldeRemoteHangup()
     }
@@ -101,13 +101,22 @@ function findPc(id) {
         }
     }
 }
+
+function commit(pc, id){
+    for (let i = 0; i < pcArr.length; i++) {
+        if (pcArr[i].id === id) {
+            pcArr[i].pc === pc
+        }
+    }
+}
+
 function casterPeerCreate(id) {
     console.log('피어 커넥션 생성');
 
+
     pcArr.push({ 'id': id, 'pc': createPeerConnection(id) })
-    console.log('생성된 피어 : ', findPc(id).pc );
-    
-    //findPc(id).addStream(localStream)
+    console.log('생성된 피어 : ', findPc(id) );
+    commit(findPc(id).addStream(localStream), id)
     sendOffer(id)
 }
 
@@ -118,10 +127,9 @@ function createPeerConnection(id){
         emptyPc.onicecandidate = function(event){
             handleIceCandidateCaster(event, id)
         }
-        emptyPc.onaddStream = handleRemoteStreamAdded
-        emptyPc.onremovestream = handleRemoteStreamRemoved
+        //emptyPc.onaddStream = handleRemoteStreamAdded
+        //emptyPc.onremovestream = handleRemoteStreamRemoved
         console.log('Created RTCPeerConnection')
-        
         return emptyPc
     }catch(e){
         console.log('Failed to create PeerConnection.\nexception : ', e)
@@ -142,7 +150,7 @@ function sendOffer(id) {
 }
 
 function setLocalAndSendMessageCaster(sdp, id){
-    findPc(id).setLocalDescription(sdp)
+    commit(findPc(id).setLocalDescription(sdp), id)
     console.log('SetLocal And SendMessage sending message : ', sdp)
     sendMessage(sdp, id)
 }
@@ -181,7 +189,7 @@ function hanldeRemoteHangup(id){
 }
 
 function close(id){
-    findPc(id).close()
+    commit(findPc(id).close(), id)
 }
 
 function sendMessage(msg, id){
@@ -192,6 +200,7 @@ function sendMessage(msg, id){
 function sendByeMessage(){
     socket.emit('message', 'bye')
 }
+
 
 window.onbeforeunload = function () {
     sendByeMessage()
